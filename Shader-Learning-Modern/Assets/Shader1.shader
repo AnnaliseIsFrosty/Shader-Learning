@@ -3,8 +3,10 @@ Shader "Unlit/Shader1"
     Properties // input data
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _Color ("Color", Color) = (1, 1, 1, 1)
+        _ColorA ("Color A", Color) = (1, 1, 1, 1)
+        _ColorB ("Color B", Color) = (1, 1, 1, 1)
         _Scale ("UV Scale", Float) = 1.0
+        _Offset ("UV Offset", Float) = 1.0
     }
     SubShader
     {
@@ -19,8 +21,10 @@ Shader "Unlit/Shader1"
 
             #include "UnityCG.cginc"
 
-            float4 _Color;
+            float4 _ColorA;
+            float4 _ColorB;
             float _Scale;
+            float _Offset;
             
             struct appdata
             {
@@ -45,7 +49,7 @@ Shader "Unlit/Shader1"
             {
                 v2f o; // output
                 o.vertex = UnityObjectToClipPos(v.vertex); // converts local space to clip space
-                o.uv = /* TRANSFORM_TEX( */v.uv0 * _Scale/* , _MainTex) */;
+                o.uv = (_Offset + v.uv0) * _Scale;
                 o.normal = /* UnityObjectToWorldNormal( */v.normals /* ) */;
 
                 return o;
@@ -56,11 +60,12 @@ Shader "Unlit/Shader1"
                 // sample the texture
                 //float4 col = tex2D(_MainTex, i.uv);
                 
-                float4 col = _Color;
+                float4 col = _ColorA;
+                float4 lerpedColor = lerp(_ColorA, _ColorB, i.uv.x);
                 float4 normal = float4(i.normal, 1);
                 float4 rawUV = float4(i.uv, 0, 1);
 
-                return rawUV;
+                return lerpedColor;
             }
             ENDCG
         }
