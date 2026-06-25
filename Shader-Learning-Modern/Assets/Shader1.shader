@@ -5,6 +5,8 @@ Shader "Unlit/Shader1"
         _MainTex ("Texture", 2D) = "white" {}
         _ColorA ("Color A", Color) = (1, 1, 1, 1)
         _ColorB ("Color B", Color) = (1, 1, 1, 1)
+        _GradientFloor("Gradient Floor", Range(0, 1)) = 0
+        _GradientCeiling("Gradient Ceiling", Range(0, 1)) = 1
         _Scale ("UV Scale", Float) = 1.0
         _Offset ("UV Offset", Float) = 1.0
     }
@@ -23,6 +25,8 @@ Shader "Unlit/Shader1"
 
             float4 _ColorA;
             float4 _ColorB;
+            float _GradientFloor;
+            float _GradientCeiling;
             float _Scale;
             float _Offset;
             
@@ -45,6 +49,11 @@ Shader "Unlit/Shader1"
             sampler2D _MainTex;
             float4 _MainTex_ST;
 
+            float InverseLerp(float floor, float ceiling, float input) 
+            {
+                return (input - floor) / (ceiling - floor);
+            }
+
             v2f vert (appdata v)
             {
                 v2f o; // output
@@ -61,7 +70,12 @@ Shader "Unlit/Shader1"
                 //float4 col = tex2D(_MainTex, i.uv);
                 
                 float4 col = _ColorA;
-                float4 lerpedColor = lerp(_ColorA, _ColorB, i.uv.x);
+                
+                // finds the gradient range based off the chosen floor and ceiling
+                // saturate clamps the values
+                float t = saturate(InverseLerp(_GradientFloor, _GradientCeiling, i.uv.x)); 
+                float4 lerpedColor = lerp(_ColorA, _ColorB, t); // blend between two colours based off x uv coordinate
+                
                 float4 normal = float4(i.normal, 1);
                 float4 rawUV = float4(i.uv, 0, 1);
 

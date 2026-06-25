@@ -29,6 +29,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _GradientCeiling: 1
+    - _GradientFloor: 0
     - _Offset: 0
     - _Scale: 1
     - _Value: 1
