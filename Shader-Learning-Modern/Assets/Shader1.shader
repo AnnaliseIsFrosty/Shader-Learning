@@ -1,4 +1,4 @@
-﻿Shader "Unlit/Shader1"
+Shader "Unlit/Shader1"
 {
     Properties
     {
