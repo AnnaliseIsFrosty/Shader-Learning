@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Material1
-  m_Shader: {fileID: 4800000, guid: 4c9a426b45716984cb7d2764d71544fb, type: 3}
+  m_Name: VertexOffsetMaterial
+  m_Shader: {fileID: 4800000, guid: 93ebde1f20e16fd4da74c06e27b55473, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -31,15 +31,13 @@ Material:
     m_Floats:
     - _GradientCeiling: 1
     - _GradientFloor: 0
-    - _Offset: 0
+    - _Offset: 1
     - _Scale: 1
-    - _Value: 1
-    - _WaveHeight: 0.019
-    - _WaveMult: 3.74
-    - _xOffsetMult: 7.99
+    - _WaveHeight: 0
+    - _WaveMult: 33.72
+    - _xOffsetMult: 44.83
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _ColorA: {r: 1, g: 0, b: 0, a: 1}
-    - _ColorB: {r: 0, g: 0.14690304, b: 1, a: 1}
+    - _ColorA: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorB: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
