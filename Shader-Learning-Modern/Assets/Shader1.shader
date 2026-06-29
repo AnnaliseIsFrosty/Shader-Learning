@@ -20,14 +20,16 @@ Shader "Unlit/Shader1"
     SubShader
     {
         Tags { 
-            "RenderType"="Transparent" 
-            "Queue"="Transparent"
+            "RenderType"="Transparent" // Tag to inform the render pipeline (useful for post-processing)
+            "Queue"="Transparent" // Changes the render order
             }
         LOD 100
 
         Pass
         {
-            ZWrite Off
+            Cull Off // Renders front and back faces
+            ZWrite Off // Doesn't write to ZBuffer
+            //ZTest Always // Always renders even if behind opaque object
             Blend One One // Additive
             //Blend DstColor Zero // Multiplicative
 
@@ -84,12 +86,7 @@ Shader "Unlit/Shader1"
             }
 
             float4 frag (v2f i) : SV_Target
-            {
-                // sample the texture
-                //float4 col = tex2D(_MainTex, i.uv);
-                
-                float4 col = _ColorA;
-               
+            {               
                 float4 normal = float4(i.normal, 1);
                 float4 rawUV = float4(i.uv, 0, 1);
                 
@@ -102,10 +99,12 @@ Shader "Unlit/Shader1"
 
                 // WAVY SHADER
                 float xOffset = cos(i.uv.x * TAU * _xOffsetMult) * _WaveHeight; // xOffset creates the wave pattern
-                float wave = cos((i.uv.y + xOffset - _Time.y * 0.1) * TAU * _WaveMult) * 0.5 + 0.5; // passes uv.x into cos function and clamps between 0 and 1 instead of -1 and 1
-                wave *= 1 - i.uv.y; // fades to black as it goes up
+                float wave = cos((i.uv.y + xOffset - _Time.y * 0.1) * TAU * _WaveMult) * 0.5 + 0.5; // Passes uv.x into cos function and clamps between 0 and 1 instead of -1 and 1
+                wave *= 1 - i.uv.y; // Fades to black as it goes up
+                wave *= (abs(i.normal.y) < 0.999); // Culls bottom and top faces of cylinder
+                //wave *= lerp(_ColorA, _ColorB, i.uv.y);
 
-                return wave;
+                return wave * lerp(_ColorA, _ColorB, i.uv.y);
             }
             ENDCG
         }
