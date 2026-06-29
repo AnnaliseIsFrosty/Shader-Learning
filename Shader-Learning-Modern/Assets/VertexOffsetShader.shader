@@ -3,25 +3,15 @@ Shader "Unlit/VertexOffsetShader"
     Properties // input data
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _WaveAmplitude("Wave Amplitude", Range(0, 0.5)) = 0.1
+        _WaveDensity("Wave Density", Float) = 5
        
-        // For Gradient Shader
-        _ColorA ("Color A", Color) = (1, 1, 1, 1)
-        _ColorB ("Color B", Color) = (1, 1, 1, 1)
-        _GradientFloor("Gradient Floor", Range(0, 1)) = 0
-        _GradientCeiling("Gradient Ceiling", Range(0, 1)) = 1
-        _Scale ("UV Scale", Float) = 1.0
-        _Offset ("UV Offset", Float) = 1.0
-        
-        // For Wavy Shader
-        _xOffsetMult("Wave xOffset", Float) = 1.0
-        _WaveHeight("Wave Height", Range(0, 0.5)) = 0.01
-        _WaveMult("Wave Mult", Float) = 1.0
     }
     SubShader
     {
         Tags { 
-            "RenderType"="Transparent" // Tag to inform the render pipeline (useful for post-processing)
-            "Queue"="Transparent" // Changes the render order
+            "RenderType"="Opaque" // Tag to inform the render pipeline (useful for post-processing)
+            "Queue"="Geometry" // Default render order
             }
         LOD 100
 
@@ -35,15 +25,8 @@ Shader "Unlit/VertexOffsetShader"
 
             #include "UnityCG.cginc"
 
-            float4 _ColorA;
-            float4 _ColorB;
-            float _GradientFloor;
-            float _GradientCeiling;
-            float _Scale;
-            float _Offset;
-            float _xOffsetMult;
-            float _WaveHeight;
-            float _WaveMult;
+            float _WaveAmplitude;
+            float _WaveDensity;
             
             struct appdata
             {
@@ -69,9 +52,26 @@ Shader "Unlit/VertexOffsetShader"
                 return (input - floor) / (ceiling - floor);
             }
 
+            float GetWave(float2 uv) 
+            {
+                float radialDistance = length(uv * 2 - 1); // Distance from the centre (-1 to 1)
+                radialDistance = cos(radialDistance * TAU * 5 - _Time.y) * 0.5 + 0.5; // Creates wave
+                radialDistance *= 1 - length(uv * 2 - 1); // Fades to black outwards from the centre
+                return radialDistance;
+            }
+
             v2f vert (appdata v)
             {
                 v2f o; // output
+
+                // old code for testing
+                //float wave = cos((v.uv0.x + _Time.y * 0.1) * TAU * _WaveDensity) * 0.5 + 0.5;
+                //float wave2 = cos((v.uv0.y + _Time.y * 0.1) * TAU * _WaveDensity) * 0.5 + 0.5;
+                //v.vertex.y = wave * wave2 * _WaveAmplitude;
+
+           
+                v.vertex.y = GetWave(v.uv0) * _WaveAmplitude;
+
                 o.vertex = UnityObjectToClipPos(v.vertex); // converts local space to clip space
                 o.uv = v.uv0;
                 o.normal = /* UnityObjectToWorldNormal( */v.normals /* ) */;
@@ -84,7 +84,7 @@ Shader "Unlit/VertexOffsetShader"
                 float4 normal = float4(i.normal, 1);
                 float4 rawUV = float4(i.uv, 0, 1);
 
-                return rawUV;
+                return float4(GetWave(i.uv).xxx, 1);
             }
             ENDCG
         }
