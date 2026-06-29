@@ -102,7 +102,6 @@ Shader "Unlit/Shader1"
                 float wave = cos((i.uv.y + xOffset - _Time.y * 0.1) * TAU * _WaveMult) * 0.5 + 0.5; // Passes uv.x into cos function and clamps between 0 and 1 instead of -1 and 1
                 wave *= 1 - i.uv.y; // Fades to black as it goes up
                 wave *= (abs(i.normal.y) < 0.999); // Culls bottom and top faces of cylinder
-                //wave *= lerp(_ColorA, _ColorB, i.uv.y);
 
                 return wave * lerp(_ColorA, _ColorB, i.uv.y);
             }
