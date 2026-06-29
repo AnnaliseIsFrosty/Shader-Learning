@@ -34,6 +34,9 @@ Material:
     - _Offset: 0
     - _Scale: 1
     - _Value: 1
+    - _WaveHeight: 0.026
+    - _WaveMult: 2.31
+    - _xOffsetMult: 12
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _ColorA: {r: 0.93710685, g: 0.81297404, b: 0.6630472, a: 1}

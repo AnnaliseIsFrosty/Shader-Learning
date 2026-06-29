@@ -3,12 +3,19 @@ Shader "Unlit/Shader1"
     Properties // input data
     {
         _MainTex ("Texture", 2D) = "white" {}
+       
+        // For Gradient Shader
         _ColorA ("Color A", Color) = (1, 1, 1, 1)
         _ColorB ("Color B", Color) = (1, 1, 1, 1)
         _GradientFloor("Gradient Floor", Range(0, 1)) = 0
         _GradientCeiling("Gradient Ceiling", Range(0, 1)) = 1
         _Scale ("UV Scale", Float) = 1.0
         _Offset ("UV Offset", Float) = 1.0
+        
+        // For Wavy Shader
+        _xOffsetMult("Wave xOffset", Float) = 1.0
+        _WaveHeight("Wave Height", Range(0, 0.5)) = 0.01
+        _WaveMult("Wave Mult", Float) = 1.0
     }
     SubShader
     {
@@ -31,6 +38,9 @@ Shader "Unlit/Shader1"
             float _GradientCeiling;
             float _Scale;
             float _Offset;
+            float _xOffsetMult;
+            float _WaveHeight;
+            float _WaveMult;
             
             struct appdata
             {
@@ -76,15 +86,17 @@ Shader "Unlit/Shader1"
                 float4 normal = float4(i.normal, 1);
                 float4 rawUV = float4(i.uv, 0, 1);
                 
+                // GRADIENT SHADER
                 // finds the gradient range based off the chosen floor and ceiling
                 // saturate clamps the values
                 float t = saturate(InverseLerp(_GradientFloor, _GradientCeiling, i.uv.x)); 
                 float4 lerpedColor = lerp(_ColorA, _ColorB, t); // blend between two colours based off x uv coordinate
                 
 
-                float xOffset = cos(i.uv.y * TAU * 8) * 0.01;
-                // passes uv.x into cos function and clamps between 0 and 1 instead of -1 and 1
-                float wave = cos((i.uv.x + xOffset + _Time.y * 0.1) * TAU * 5) * 0.5 + 0.5;
+                // WAVY SHADER
+                float xOffset = cos(i.uv.x * TAU * _xOffsetMult) * _WaveHeight; // xOffset creates the wave pattern
+                float wave = cos((i.uv.y + xOffset - _Time.y * 0.1) * TAU * _WaveMult) * 0.5 + 0.5; // passes uv.x into cos function and clamps between 0 and 1 instead of -1 and 1
+                wave *= 1 - i.uv.y; // fades to black as it goes up
 
                 return wave;
             }
