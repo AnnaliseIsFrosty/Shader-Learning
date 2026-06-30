@@ -3,6 +3,8 @@ Shader "Unlit/TextureShader"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _PatternTex ("Texture", 2D) = "white" {}
+        _WaveDensity ("Wave Density", Range(0, 50)) = 1.0
     }
     SubShader
     {
@@ -15,7 +17,11 @@ Shader "Unlit/TextureShader"
             #pragma vertex vert
             #pragma fragment frag
 
+            #define TAU 6.28318531
+
             #include "UnityCG.cginc"
+
+            float _WaveDensity;
 
             struct appdata
             {
@@ -31,6 +37,8 @@ Shader "Unlit/TextureShader"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
+            sampler2D _PatternTex;
+            float4 _PatternTex_ST;
 
             v2f vert (appdata v)
             {
@@ -43,9 +51,13 @@ Shader "Unlit/TextureShader"
             fixed4 frag (v2f i) : SV_Target
             {
                 // sample the texture
-                fixed4 col = tex2D(_MainTex, i.uv);
+                fixed4 moss = tex2D(_MainTex, i.uv);
+                fixed4 pattern = tex2D(_PatternTex, i.uv);
 
-                return col;
+                pattern = (cos((pattern - _Time.y * 0.2) * TAU * _WaveDensity) * 0.5 + 0.5) * (1 - pattern);
+                //pattern *= 1 - float4(i.uv, 1, 1);
+
+                return pattern;
             }
             ENDCG
         }
