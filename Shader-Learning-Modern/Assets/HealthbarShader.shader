@@ -6,6 +6,9 @@ Shader "Unlit/HealthbarShader"
         _Health ("Health", Range(0, 1)) = 1.0
         _StartColor ("Start Color", Color) = (1, 0, 0, 1)
         _EndColor ("End Color", Color) = (0, 1, 0, 1)
+        _LowerThreshold ("Lower Threshold", Range(0, 1)) = 0.2
+        _UpperThreshold ("Upper Threshold", Range(0, 1)) = 0.8
+
     }
     SubShader
     {
@@ -22,6 +25,7 @@ Shader "Unlit/HealthbarShader"
 
             float _Health;
             float4 _StartColor, _EndColor;
+            float _LowerThreshold, _UpperThreshold;
             
             struct appdata
             {
@@ -53,8 +57,11 @@ Shader "Unlit/HealthbarShader"
                 fixed4 col = tex2D(_MainTex, i.uv);
 
                 float4 lerpedColor = lerp(_StartColor, _EndColor, _Health); // Creates a gradient
-                lerpedColor *= i.uv.x < _Health; // Displays blackc if health is lower than the current uv.x
                 
+                lerpedColor += (_StartColor - lerpedColor) * (_Health <= _LowerThreshold); // Sets whole bar to start color if below threshold
+                lerpedColor += (_EndColor - lerpedColor) * (_Health >= _UpperThreshold); // Sets whole bar to end color if above threshold
+                
+                lerpedColor *= i.uv.x < _Health; // Displays blackc if health is lower than the current uv.x
                 return lerpedColor;
             }
             ENDCG
