@@ -1,10 +1,11 @@
-Shader "Unlit/TextureShader"
+Shader "Unlit/HealthbarShader"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _PatternTex ("Texture", 2D) = "white" {}
-        _WaveDensity ("Wave Density", Range(0, 50)) = 1.0
+        _Health ("Health", Range(0, 1)) = 1.0
+        _StartColor ("Start Color", Color) = (1, 0, 0, 1)
+        _EndColor ("End Color", Color) = (0, 1, 0, 1)
     }
     SubShader
     {
@@ -17,12 +18,11 @@ Shader "Unlit/TextureShader"
             #pragma vertex vert
             #pragma fragment frag
 
-            #define TAU 6.28318531
-
             #include "UnityCG.cginc"
 
-            float _WaveDensity;
-
+            float _Health;
+            float4 _StartColor, _EndColor;
+            
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -37,27 +37,23 @@ Shader "Unlit/TextureShader"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
-            sampler2D _PatternTex;
-            float4 _PatternTex_ST;
 
             v2f vert (appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+
                 return o;
             }
 
             fixed4 frag (v2f i) : SV_Target
             {
                 // sample the texture
-                fixed4 moss = tex2D(_MainTex, i.uv);
-                fixed4 pattern = tex2D(_PatternTex, i.uv);
+                fixed4 col = tex2D(_MainTex, i.uv);
 
-                pattern = (cos((pattern - _Time.y * 0.2) * TAU * _WaveDensity) * 0.5 + 0.5) * (pattern);
-                //pattern *= 1 - float4(i.uv, 1, 1);
-
-                return pattern;
+                float4 lerpedColor = lerp(_StartColor, _EndColor, _Health);
+                return lerpedColor;
             }
             ENDCG
         }
