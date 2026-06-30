@@ -54,7 +54,7 @@ Shader "Unlit/HealthbarShader"
             fixed4 frag (v2f i) : SV_Target
             {
                 // sample the texture
-                fixed4 col = tex2D(_MainTex, i.uv);
+                fixed4 col = tex2D(_MainTex, float2(_Health, i.uv.y));
 
                 float4 lerpedColor = lerp(_StartColor, _EndColor, _Health); // Creates a gradient
                 lerpedColor += (_StartColor - lerpedColor) * (_Health <= _LowerThreshold); // Sets whole bar to start color if below lower threshold
@@ -62,7 +62,7 @@ Shader "Unlit/HealthbarShader"
                 lerpedColor *= i.uv.x < _Health; // Displays black if health is lower than the current uv.x
                 clip((i.uv.x > _Health) * -1); // Clips out the empty healthbar (effectively renders the previous line pointless)
                 
-                return lerpedColor;
+                return col;
             }
             ENDCG
         }
