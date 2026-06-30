@@ -54,8 +54,8 @@ Shader "Unlit/TextureShader"
                 fixed4 moss = tex2D(_MainTex, i.uv);
                 fixed4 pattern = tex2D(_PatternTex, i.uv);
 
+                // just creates a wave based off the pattern texture
                 pattern = (cos((pattern - _Time.y * 0.2) * TAU * _WaveDensity) * 0.5 + 0.5) * (pattern);
-                //pattern *= 1 - float4(i.uv, 1, 1);
 
                 return pattern;
             }

@@ -52,7 +52,9 @@ Shader "Unlit/HealthbarShader"
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
 
-                float4 lerpedColor = lerp(_StartColor, _EndColor, _Health);
+                float4 lerpedColor = lerp(_StartColor, _EndColor, _Health); // Creates a gradient
+                lerpedColor *= i.uv.x < _Health; // Displays blackc if health is lower than the current uv.x
+                
                 return lerpedColor;
             }
             ENDCG
