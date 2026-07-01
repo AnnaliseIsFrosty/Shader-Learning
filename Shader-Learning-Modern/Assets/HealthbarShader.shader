@@ -80,8 +80,16 @@ Shader "Unlit/HealthbarShader"
                 lerpedColor += (_StartColor - lerpedColor) * (_Health <= _LowerThreshold); // Sets whole bar to start color if below lower threshold
                 lerpedColor += (_EndColor - lerpedColor) * (_Health >= _UpperThreshold); // Same with end color if above upper threshold
                 lerpedColor *= i.uv.x < _Health; // Displays black if health is lower than the current uv.x
+                lerpedColor += lerp(lerpedColor, float4(0.5.xxxx), CubicPulse(i.uv.y, 0.65, 0.2)); // Creates highlight
+                lerpedColor *= 1 - CubicPulse(i.uv.y, 0.0,0.6) * 0.75; // Creates shadow
+                
+                float4 flash = lerp(lerpedColor, _FlashColor, CubicPulse(frac(_Time.y), 0.5, _FlashLength) * _FlashStrength); // Blends to flash color based off current intensity of the flash
+                lerpedColor *= lerpedColor * (_Health > _LowerThreshold * 1.75) + flash * (_Health <= _LowerThreshold * 1.75);
+
                 clip((i.uv.x > _Health) * -1); // Clips out the empty healthbar (effectively renders the previous line pointless)
                 
+
+
                 // Code for the textured healthbar
                 float4 texturedOutput; // the final output
                 float4 col = tex2D(_MainTex, float2(_Health, i.uv.y)); // Samples the texture at the x position corresponding to current health
@@ -92,10 +100,10 @@ Shader "Unlit/HealthbarShader"
                 //col += (texturedStartColor - col) * (_Health <= _LowerThreshold) + (texturedEndColor - col) * (_Health >= _UpperThreshold);
                 
                 // Flashing code
-                float4 flash = lerp(col, _FlashColor, CubicPulse(frac(_Time.y), 0.5, _FlashLength) * _FlashStrength); // Blends to flash color based off current intensity of the flash
+                flash = lerp(col, _FlashColor, CubicPulse(frac(_Time.y), 0.5, _FlashLength) * _FlashStrength); // Blends to flash color based off current intensity of the flash
                 texturedOutput = col * (_Health > _LowerThreshold) + flash * (_Health <= _LowerThreshold);
 
-                return texturedOutput;
+                return lerpedColor;
             }
             ENDCG
         }
