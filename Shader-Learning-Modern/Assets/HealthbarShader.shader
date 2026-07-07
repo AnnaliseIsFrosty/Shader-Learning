@@ -20,6 +20,8 @@ Shader "Unlit/HealthbarShader"
 
         Pass
         {
+            // Testing git
+
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
