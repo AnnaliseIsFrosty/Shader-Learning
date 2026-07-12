@@ -64,12 +64,13 @@ Shader "Unlit/LightingShader"
 
                 // Blinn-Phong lighting
                 float3 halfVec = normalize(lightVec + camVec);
-                float specularLight = clamp(dot(i.normal, halfVec), 0, 1) * (lambert > 0);
+                float3 specularLight = clamp(dot(i.normal, halfVec), 0, 1) * (lambert > 0);
 
-                float specularExponent = exp2(_Gloss * 6 + 1);
-                specularLight = pow(specularLight, specularExponent);
+                float specularExponent = exp2(_Gloss * 6) + 1;
+                specularLight = pow(specularLight, specularExponent) * _Gloss;
+                specularLight *= _LightColor0.xyz;
 
-                return float4(specularLight.xxx, 1);
+                return float4(diffuseLight + specularLight, 1);
             }
             ENDCG
         }
