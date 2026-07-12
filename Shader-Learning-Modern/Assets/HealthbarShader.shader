@@ -11,6 +11,7 @@ Shader "Unlit/HealthbarShader"
         _FlashColor ("Flash Color", Color) = (1, 1, 1, 1)
         _FlashLength ("Flash Length", Range(0, 1)) = 0.4
         _FlashStrength ("Flash Strength", Range(0, 1)) = 0.5
+        _Roundedness ("Roundedness", Range(0, 1)) = 0.5
 
     }
     SubShader
@@ -33,7 +34,8 @@ Shader "Unlit/HealthbarShader"
             float _LowerThreshold, _UpperThreshold;
             float4 _FlashColor;
             float _FlashLength, _FlashStrength;
-            
+            float _Roundedness;
+
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -90,7 +92,12 @@ Shader "Unlit/HealthbarShader"
 
                 clip((i.uv.x > _Health) * -1); // Clips out the empty healthbar (effectively renders the previous line pointless)
                 
+                // code from freya holmer https://www.youtube.com/watch?v=mL8U8tIiRRg&t=5968s
+                float2 repeatingUV = float2(i.uv.x * 8, i.uv.y);
+                float2 lineOfDots = float2(clamp(repeatingUV.x, 0.5, 7.5), 0.5);
+                float distFromLine = distance(repeatingUV, lineOfDots);
 
+                clip((distFromLine > _Roundedness) * -1);
 
                 // Code for the textured healthbar
                 float4 texturedOutput; // the final output
