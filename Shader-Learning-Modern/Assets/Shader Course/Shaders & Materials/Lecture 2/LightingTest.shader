@@ -60,7 +60,7 @@
                 specularLight = pow( specularLight, specularExponent ) * _Gloss; // specular exponent
                 specularLight *= _LightColor0.xyz;
 
-                return float4( L , 1);
+                return float4( specularLight , 1);
             }
             ENDCG
         }

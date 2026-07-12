@@ -2,7 +2,7 @@ Shader "Unlit/LightingShader"
 {
     Properties
     {
-        _Gloss ("Gloss", Float) = 1
+        _Gloss ("Gloss", Range(0, 1)) = 0.5
     }
     SubShader
     {
@@ -52,15 +52,22 @@ Shader "Unlit/LightingShader"
                 i.normal = normalize(i.normal); // Normalize all interpolated normals to smooth out specular light
 
                 // Diffuse Lighting
-                float3 lightVector = _WorldSpaceLightPos0.xyz;
-                float3 diffuseLight = clamp(dot(i.normal, lightVector), 0, 1) * _LightColor0.xyz;
+                float3 lightVec = _WorldSpaceLightPos0.xyz;
+                float3 lambert = clamp(dot(i.normal, lightVec), 0, 1);
+                float3 diffuseLight = lambert * _LightColor0.xyz;
 
                 // Specular Lighting
                 float3 camVec = normalize(_WorldSpaceCameraPos - i.wPos);
-                float3 reflectionVec = reflect(-lightVector, i.normal);
-                float specularLight = clamp(dot(camVec, reflectionVec), 0, 1);
+                            // Used for Phong lighting
+                            //float3 reflectionVec = reflect(-lightVec, i.normal);
+                            //float specularLight = clamp(dot(camVec, reflectionVec), 0, 1);
 
-                specularLight = pow(specularLight, _Gloss);
+                // Blinn-Phong lighting
+                float3 halfVec = normalize(lightVec + camVec);
+                float specularLight = clamp(dot(i.normal, halfVec), 0, 1) * (lambert > 0);
+
+                float specularExponent = exp2(_Gloss * 6 + 1);
+                specularLight = pow(specularLight, specularExponent);
 
                 return float4(specularLight.xxx, 1);
             }
