@@ -12,6 +12,7 @@ Shader "Unlit/HealthbarShader"
         _FlashLength ("Flash Length", Range(0, 1)) = 0.4
         _FlashStrength ("Flash Strength", Range(0, 1)) = 0.5
         _Roundedness ("Roundedness", Range(0, 1)) = 0.5
+        _OutlineWidth ("Outline Width", Range(0, 0.3)) = 0.1
 
     }
     SubShader
@@ -35,6 +36,7 @@ Shader "Unlit/HealthbarShader"
             float4 _FlashColor;
             float _FlashLength, _FlashStrength;
             float _Roundedness;
+            float _OutlineWidth;
 
             struct appdata
             {
@@ -79,38 +81,45 @@ Shader "Unlit/HealthbarShader"
             {
                 
                 // Code for the healthbar without the texture
-                float t = saturate(InverseLerp(_LowerThreshold, _UpperThreshold, _Health)); // Creates gradient range as between both thresholds
-                float4 lerpedColor = lerp(_StartColor, _EndColor, t); // Creates a gradient
-                lerpedColor += (_StartColor - lerpedColor) * (_Health <= _LowerThreshold); // Sets whole bar to start color if below lower threshold
-                lerpedColor += (_EndColor - lerpedColor) * (_Health >= _UpperThreshold); // Same with end color if above upper threshold
-                lerpedColor *= i.uv.x < _Health; // Displays black if health is lower than the current uv.x
-                lerpedColor += lerp(lerpedColor, float4(0.5.xxxx), CubicPulse(i.uv.y, 0.65, 0.2)); // Creates highlight
-                lerpedColor *= 1 - CubicPulse(i.uv.y, 0.0,0.6) * 0.75; // Creates shadow
+                float t = saturate(InverseLerp(_LowerThreshold, _UpperThreshold, _Health));         // Creates gradient range as between both thresholds
+                float4 lerpedColor = lerp(_StartColor, _EndColor, t);                               // Creates a gradient
+                lerpedColor += (_StartColor - lerpedColor) * (_Health <= _LowerThreshold);          // Sets whole bar to start color if below lower threshold
+                lerpedColor += (_EndColor - lerpedColor) * (_Health >= _UpperThreshold);            // Same with end color if above upper threshold
+                lerpedColor *= i.uv.x < _Health;                                                    // Displays black if health is lower than the current uv.x
+                lerpedColor += lerp(lerpedColor, float4(0.5.xxxx), CubicPulse(i.uv.y, 0.65, 0.2));  // Creates highlight
+                lerpedColor *= 1 - CubicPulse(i.uv.y, 0.0,0.6) * 0.75;                              // Creates shadow
                 
                 float4 flash = lerp(lerpedColor, _FlashColor, CubicPulse(frac(_Time.y), 0.5, _FlashLength) * _FlashStrength); // Blends to flash color based off current intensity of the flash
-                lerpedColor *= lerpedColor * (_Health > _LowerThreshold * 1.75) + flash * (_Health <= _LowerThreshold * 1.75);
+                lerpedColor *= lerpedColor * (_Health > _LowerThreshold) + flash * (_Health <= _LowerThreshold);
 
-                clip((i.uv.x > _Health) * -1); // Clips out the empty healthbar (effectively renders the previous line pointless)
+                clip((i.uv.x > _Health) * -1); // Clips out the empty healthbar
                 
+                // Rounded Edges
+                // Uses a signed distance function to check if a pixel is far away enough that it should be clipped
                 // code from freya holmer https://www.youtube.com/watch?v=mL8U8tIiRRg&t=5968s
-                float2 repeatingUV = float2(i.uv.x * 8, i.uv.y);
-                float2 lineOfDots = float2(clamp(repeatingUV.x, 0.5, 7.5), 0.5);
+                float2 repeatingUV = float2(i.uv.x * 8, i.uv.y);                                    // Setup for the segment at the heart of the SDF (7/8ths the width of the healthbar)
+                float2 lineOfDots = float2(clamp(repeatingUV.x, 0.5, 7.5), 0.5);                    // Definition of the segment
                 float distFromLine = distance(repeatingUV, lineOfDots);
 
                 clip((distFromLine > _Roundedness) * -1);
 
-                // Code for the textured healthbar
-                float4 texturedOutput; // the final output
-                float4 col = tex2D(_MainTex, float2(_Health, i.uv.y)); // Samples the texture at the x position corresponding to current health
-                float4 texturedStartColor = tex2D(_MainTex, float2(0, i.uv.y)); // Color for below lower threshold
-                float4 texturedEndColor = tex2D(_MainTex, float2(1, i.uv.y)); // Color for above upper threshold
+                // Outline
+                lerpedColor *= !(distFromLine + _OutlineWidth > _Roundedness);
+
+
+
+                // // Code for the textured healthbar
+                // float4 texturedOutput; // the final output
+                // float4 col = tex2D(_MainTex, float2(_Health, i.uv.y)); // Samples the texture at the x position corresponding to current health
+                // float4 texturedStartColor = tex2D(_MainTex, float2(0, i.uv.y)); // Color for below lower threshold
+                // float4 texturedEndColor = tex2D(_MainTex, float2(1, i.uv.y)); // Color for above upper threshold
                 
-                // Code for the thresholds (I prefer how it looks without thresholds)
-                //col += (texturedStartColor - col) * (_Health <= _LowerThreshold) + (texturedEndColor - col) * (_Health >= _UpperThreshold);
+                // // Code for the thresholds (I prefer how it looks without thresholds)
+                // //col += (texturedStartColor - col) * (_Health <= _LowerThreshold) + (texturedEndColor - col) * (_Health >= _UpperThreshold);
                 
-                // Flashing code
-                flash = lerp(col, _FlashColor, CubicPulse(frac(_Time.y), 0.5, _FlashLength) * _FlashStrength); // Blends to flash color based off current intensity of the flash
-                texturedOutput = col * (_Health > _LowerThreshold) + flash * (_Health <= _LowerThreshold);
+                // // Flashing code
+                // flash = lerp(col, _FlashColor, CubicPulse(frac(_Time.y), 0.5, _FlashLength) * _FlashStrength); // Blends to flash color based off current intensity of the flash
+                // texturedOutput = col * (_Health > _LowerThreshold) + flash * (_Health <= _LowerThreshold);
 
                 return lerpedColor;
             }
