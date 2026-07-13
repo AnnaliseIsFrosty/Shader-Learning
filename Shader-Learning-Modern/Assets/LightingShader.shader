@@ -32,7 +32,7 @@ Shader "Unlit/LightingShader"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile_fwd   add
+            #pragma multi_compile_fwdadd
 
             #include "FGLighting.cginc"
 

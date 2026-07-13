@@ -1,3 +1,4 @@
+#define USE_LIGHTING
 
 float _Gloss;
 
@@ -38,9 +39,10 @@ float4 frag(v2f i) : SV_Target
     i.normal = normalize(i.normal); // Normalize all interpolated normals to smooth out specular light
 
                 // Diffuse Lighting
-    float3 lightVec = UnityWorldSpaceLightDir(i.wPos);
+    float3 lightVec = normalize(UnityWorldSpaceLightDir(i.wPos));
+    float attenuation = LIGHT_ATTENUATION(i);
     float3 lambert = clamp(dot(i.normal, lightVec), 0, 1);
-    float3 diffuseLight = lambert * _LightColor0.xyz;
+    float3 diffuseLight = lambert * attenuation * _LightColor0.xyz;
 
                 // Specular Lighting
     float3 camVec = normalize(_WorldSpaceCameraPos - i.wPos);
@@ -53,8 +55,9 @@ float4 frag(v2f i) : SV_Target
     float3 specularLight = clamp(dot(i.normal, halfVec), 0, 1) * (lambert > 0);
 
     float specularExponent = exp2(_Gloss * 6) + 1;
-    specularLight = pow(specularLight, specularExponent) * _Gloss; // multiply by gloss to keep an illusion of energy conservation
+    specularLight = pow(specularLight, specularExponent) * _Gloss * attenuation; // multiply by gloss to keep an illusion of energy conservation
     specularLight *= _LightColor0.xyz;
-
+    
+    //return float4(attenuation.xxx, 1);
     return float4(diffuseLight + specularLight, 1);
 }
