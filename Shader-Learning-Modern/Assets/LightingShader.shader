@@ -5,6 +5,7 @@ Shader "Unlit/LightingShader"
         _Gloss ("Gloss", Range(0, 1)) = 0.5
         _RockAlbedo("Rock Albedo", 2D) = "white"{}
         _RockNormalMap("Rock Normal Map", 2D) = "bump"{}
+        _RockNormalIntensity("Rock Normal Intensity", Range(0, 1)) = 0.5
     }
     SubShader
     {
