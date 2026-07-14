@@ -1,6 +1,10 @@
 #define USE_LIGHTING
 
 float _Gloss;
+sampler2D _RockAlbedo;
+float4 _RockAlbedo_ST;
+sampler2D _RockNormalMap;
+float4 _RockNormalMap_ST;
 
 #include "UnityCG.cginc"
 #include "Lighting.cginc"
@@ -11,6 +15,7 @@ struct appdata
     float4 vertex : POSITION;
     float2 uv : TEXCOORD0;
     float3 normal : NORMAL;
+    float4 tangent : TANGENT;
 };
 
 struct v2f
@@ -19,7 +24,9 @@ struct v2f
     float4 vertex : SV_POSITION;
     float3 normal : TEXCOORD1;
     float3 wPos : TEXCOORD2;
-    LIGHTING_COORDS(3, 4)
+    float3 tangent : TEXCOORD3;
+    float3 bitangent : TEXCOORD4;
+    LIGHTING_COORDS(5, 6)
 };
 
 
@@ -27,16 +34,30 @@ v2f vert(appdata v)
 {
     v2f o;
     o.vertex = UnityObjectToClipPos(v.vertex);
-    o.uv = v.uv;
+    o.uv = TRANSFORM_TEX(v.uv, _RockAlbedo);
     o.normal = UnityObjectToWorldNormal(v.normal);
     o.wPos = mul(unity_ObjectToWorld, v.vertex);
+    o.tangent = UnityObjectToWorldDir(v.tangent.xyz);
+    o.bitangent = cross(o.normal, o.tangent) * (v.tangent.w * unity_WorldTransformParams.w);
     TRANSFER_VERTEX_TO_FRAGMENT(o); // populates interpolators with info it needs to calculate light info
     return o;
 }
 
 float4 frag(v2f i) : SV_Target
 {
-    i.normal = normalize(i.normal); // Normalize all interpolated normals to smooth out specular light
+    float3 rock = tex2D(_RockAlbedo, i.uv).rgb;
+    
+    float3 tangentSpaceNormal = UnpackNormal(tex2D(_RockNormalMap, i.uv));
+    float3x3 matTangToWorld =
+    {
+        i.tangent.x, i.bitangent.x, i.normal.x,
+        i.tangent.y, i.bitangent.y, i.normal.y,
+        i.tangent.z, i.bitangent.z, i.normal.z
+    };
+    
+    i.normal = mul(matTangToWorld, tangentSpaceNormal);
+    
+    //i.normal = normalize(i.normal); // Normalize all interpolated normals to smooth out specular light
 
                 // Diffuse Lighting
     float3 lightVec = normalize(UnityWorldSpaceLightDir(i.wPos));
@@ -59,5 +80,5 @@ float4 frag(v2f i) : SV_Target
     specularLight *= _LightColor0.xyz;
     
     //return float4(attenuation.xxx, 1);
-    return float4(diffuseLight + specularLight, 1);
+    return float4(diffuseLight * rock + specularLight, 1);
 }

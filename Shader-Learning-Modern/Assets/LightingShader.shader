@@ -3,6 +3,8 @@ Shader "Unlit/LightingShader"
     Properties
     {
         _Gloss ("Gloss", Range(0, 1)) = 0.5
+        _RockAlbedo("Rock Albedo", 2D) = "white"{}
+        _RockNormalMap("Rock Normal Map", 2D) = "bump"{}
     }
     SubShader
     {
@@ -17,6 +19,7 @@ Shader "Unlit/LightingShader"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #define IN_BASE
 
             #include "FGLighting.cginc"
 
