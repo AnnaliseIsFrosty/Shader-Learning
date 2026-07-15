@@ -6,6 +6,9 @@ float4 _RockAlbedo_ST;
 sampler2D _RockNormalMap;
 float4 _RockNormalMap_ST;
 float _RockNormalIntensity;
+sampler2D _RockHeightMap;
+float4 _RockHeightMap_ST;
+float _RockHeightIntensity;
 
 #include "UnityCG.cginc"
 #include "Lighting.cginc"
@@ -34,8 +37,13 @@ struct v2f
 v2f vert(appdata v)
 {
     v2f o;
-    o.vertex = UnityObjectToClipPos(v.vertex);
+    
     o.uv = TRANSFORM_TEX(v.uv, _RockAlbedo);
+
+    float height = tex2Dlod(_RockHeightMap, float4(o.uv, 0, 0)).x * 2 - 1;
+    v.vertex.xyz += v.normal * height * _RockHeightIntensity;
+
+    o.vertex = UnityObjectToClipPos(v.vertex);
     o.normal = UnityObjectToWorldNormal(v.normal);
     o.wPos = mul(unity_ObjectToWorld, v.vertex);
     o.tangent = UnityObjectToWorldDir(v.tangent.xyz);

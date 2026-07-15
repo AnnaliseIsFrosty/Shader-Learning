@@ -6,6 +6,8 @@ Shader "Unlit/LightingShader"
         _RockAlbedo("Rock Albedo", 2D) = "white"{}
         _RockNormalMap("Rock Normal Map", 2D) = "bump"{}
         _RockNormalIntensity("Rock Normal Intensity", Range(0, 1)) = 0.5
+        _RockHeightMap("Rock HeightMap", 2D) = "gray"{}
+        _RockHeightIntensity("Rock Height Intensity", Range(0, 0.2)) = 0.1
     }
     SubShader
     {
