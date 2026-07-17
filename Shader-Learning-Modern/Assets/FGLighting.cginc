@@ -9,6 +9,7 @@ float _RockNormalIntensity;
 sampler2D _RockHeightMap;
 float4 _RockHeightMap_ST;
 float _RockHeightIntensity;
+float4 _AmbientLight;
 
 #include "UnityCG.cginc"
 #include "Lighting.cginc"
@@ -74,6 +75,10 @@ float4 frag(v2f i) : SV_Target
     float attenuation = LIGHT_ATTENUATION(i);
     float3 lambert = clamp(dot(i.normal, lightVec), 0, 1);
     float3 diffuseLight = lambert * attenuation * _LightColor0.xyz;
+
+#ifdef IN_BASE
+        diffuseLight += _AmbientLight;
+#endif
 
                 // Specular Lighting
     float3 camVec = normalize(_WorldSpaceCameraPos - i.wPos);

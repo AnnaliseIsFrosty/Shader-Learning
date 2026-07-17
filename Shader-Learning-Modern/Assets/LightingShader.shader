@@ -8,6 +8,7 @@ Shader "Unlit/LightingShader"
         _RockNormalIntensity("Rock Normal Intensity", Range(0, 1)) = 0.5
         _RockHeightMap("Rock HeightMap", 2D) = "gray"{}
         _RockHeightIntensity("Rock Height Intensity", Range(0, 0.2)) = 0.1
+        _AmbientLight("Ambient Light", Color) = (0, 0, 0, 0)
     }
     SubShader
     {
