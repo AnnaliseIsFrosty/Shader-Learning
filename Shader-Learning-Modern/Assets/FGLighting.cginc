@@ -12,6 +12,9 @@ float _RockHeightIntensity;
 float4 _AmbientLight;
 sampler2D _DiffuseIBL;
 float4 _DiffuseIBL_ST;
+sampler2D _SpecularIBL;
+float4 _SpecularIBL_ST;
+float _SpecularIBLIntensity;
 
 #include "UnityCG.cginc"
 #include "Lighting.cginc"
@@ -86,28 +89,33 @@ float4 frag(v2f i) : SV_Target
     float3 lambert = clamp(dot(i.normal, lightVec), 0, 1);
     float3 diffuseLight = lambert * attenuation * _LightColor0.xyz;
 
-#ifdef IN_BASE
-     float3 diffuseIBL = tex2Dlod(_DiffuseIBL, float4(DirToRectilinear(i.normal), 0, 0)).xyz;
-     diffuseLight += diffuseIBL;
-     //return float4(diffuseIBL, 1);
-#else
-    //return float4(0, 0, 0, 0);
-
-#endif
-
-                // Specular Lighting
+    // Specular Lighting
     float3 camVec = normalize(_WorldSpaceCameraPos - i.wPos);
                             // Used for Phong lighting
                             //float3 reflectionVec = reflect(-lightVec, i.normal);
                             //float specularLight = clamp(dot(camVec, reflectionVec), 0, 1);
 
-                // Blinn-Phong lighting
+    // Blinn-Phong lighting
     float3 halfVec = normalize(lightVec + camVec);
     float3 specularLight = clamp(dot(i.normal, halfVec), 0, 1) * (lambert > 0);
 
     float specularExponent = exp2(_Gloss * 6) + 1;
     specularLight = pow(specularLight, specularExponent) * _Gloss * attenuation; // multiply by gloss to keep an illusion of energy conservation
     specularLight *= _LightColor0.xyz;
+
+#ifdef IN_BASE
+     float3 diffuseIBL = tex2Dlod(_DiffuseIBL, float4(DirToRectilinear(i.normal), 0, 0)).xyz;
+     diffuseLight += diffuseIBL;
+     
+     float fresnel = pow(1 - saturate(dot(camVec, i.normal)), 5);
+     float _Mip = (1 - _Gloss) * 6;
+     float3 reflectionVec = reflect(-camVec, i.normal);
+     float3 specularIBL = tex2Dlod(_SpecularIBL, float4(DirToRectilinear(reflectionVec), _Mip, _Mip)).xyz;
+     specularLight += specularIBL * _SpecularIBLIntensity * fresnel;
+
+#endif
+
+
     
     //return float4(attenuation.xxx, 1);
     return float4(diffuseLight * rock + specularLight, 1);
