@@ -9,11 +9,14 @@ Shader "Unlit/LightingShader"
         _RockHeightMap("Rock HeightMap", 2D) = "gray"{}
         _RockHeightIntensity("Rock Height Intensity", Range(0, 0.2)) = 0.1
         _AmbientLight("Ambient Light", Color) = (0, 0, 0, 0)
+        _DiffuseIBL("Diffuse IBL", 2D) = "black"{}
     }
     SubShader
     {
         Tags { "RenderType"="Opaque" }
         LOD 100
+
+        
 
         // Base
         Pass
@@ -24,6 +27,7 @@ Shader "Unlit/LightingShader"
             #pragma vertex vert
             #pragma fragment frag
             #define IN_BASE
+            #define TAU 6.2831853
 
             #include "FGLighting.cginc"
 
@@ -40,6 +44,7 @@ Shader "Unlit/LightingShader"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_fwdadd
+            #define TAU 6.2831853
 
             #include "FGLighting.cginc"
 

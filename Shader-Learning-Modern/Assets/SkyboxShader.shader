@@ -54,7 +54,7 @@ Shader "Unlit/SkyboxShader"
             fixed4 frag (v2f i) : SV_Target
             {
                 // sample the texture
-                fixed4 col = tex2D(_MainTex, DirToRectilinear(i.uv));
+                fixed4 col = tex2Dlod(_MainTex, float4(DirToRectilinear(i.uv), 0, 0));
                 
                 return col;
             }

@@ -10,6 +10,8 @@ sampler2D _RockHeightMap;
 float4 _RockHeightMap_ST;
 float _RockHeightIntensity;
 float4 _AmbientLight;
+sampler2D _DiffuseIBL;
+float4 _DiffuseIBL_ST;
 
 #include "UnityCG.cginc"
 #include "Lighting.cginc"
@@ -34,6 +36,14 @@ struct v2f
     LIGHTING_COORDS(5, 6)
 };
 
+
+ // Code taken from Freya Holmer https://www.youtube.com/watch?v=E4PHFnvMzFc&t=10728s
+float2 DirToRectilinear(float3 dir)
+{
+    float x = atan2(dir.z, dir.x) / TAU + 0.5;
+    float y = dir.y * 0.5 + 0.5;
+    return float2(x, y);
+}
 
 v2f vert(appdata v)
 {
@@ -76,9 +86,14 @@ float4 frag(v2f i) : SV_Target
     float3 lambert = clamp(dot(i.normal, lightVec), 0, 1);
     float3 diffuseLight = lambert * attenuation * _LightColor0.xyz;
 
-    #ifdef IN_BASE
-        diffuseLight += _AmbientLight;
-    #endif
+#ifdef IN_BASE
+     float3 diffuseIBL = tex2Dlod(_DiffuseIBL, float4(DirToRectilinear(i.normal), 0, 0)).xyz;
+     diffuseLight += diffuseIBL;
+     //return float4(diffuseIBL, 1);
+#else
+    //return float4(0, 0, 0, 0);
+
+#endif
 
                 // Specular Lighting
     float3 camVec = normalize(_WorldSpaceCameraPos - i.wPos);
